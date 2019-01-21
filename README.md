@@ -20,4 +20,4 @@ End Time Hours, Minutes
 4. Type `sleepservice.exe install start`
 
 ### Uninstall
-Same as install step 1-3, then type `sleepservice.exe uninstall` on step 4
+Same as install step 1-3, step 4 type `sleepservice.exe uninstall`
