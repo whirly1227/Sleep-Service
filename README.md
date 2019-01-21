@@ -15,7 +15,7 @@ End Time Hours, Minutes
 08, 00
 ```
 2. Open Command Prompt (Admin)
-3. Change Directory to the file location  
+3. Change Directory to the file location 
 'cd "C:\Users\USERNAME\SleepService"'
 4. Type `sleepservice.exe install start`
 
