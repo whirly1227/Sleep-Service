@@ -7,17 +7,17 @@ Visual Studio 2017 V15.9.5
 
 ## Install/Uninstall Instructions
 ### Install
-1. Change the values SleepServiceParams.txt
+1. Open SleepServiceParams.txt and **Change Values**.
 ```
 Start Time Hours, Minutes  
 22, 00  
 End Time Hours, Minutes  
 08, 00
 ```
-2. Open Command Prompt (Admin)
-3. Change Directory to the file location 
-@'cd "C:\Users\USERNAME\SleepService"'
-4. Type `sleepservice.exe install start`
+2. Open **Command Prompt (Admin)**
+3. **Change Directory** to the file location where Sleep Service is located.  
+     example: `cd "C:\Users\USERNAME\SleepService"`
+4. **Type** `sleepservice.exe install start`<a id="#install4"></a>
 
 ### Uninstall
-Same as install step 1-3, step 4 type `sleepservice.exe uninstall`
+Same as install step 1-3, **[step 4 type](#install4)** `sleepservice.exe uninstall`
