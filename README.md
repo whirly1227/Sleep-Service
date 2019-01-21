@@ -17,7 +17,7 @@ End Time Hours, Minutes
 2. Open **Command Prompt (Admin)**
 3. **Change Directory** to the file location where Sleep Service is located.  
      example: `cd "C:\Users\USERNAME\SleepService"`
-4. **Type** `sleepservice.exe install start`<a id="#install4"></a>
+4. **Type** `sleepservice.exe install start`
 
 ### Uninstall
-Same as install step 1-3, **[step 4](#install4) type** `sleepservice.exe uninstall`
+Same as install step 1-3, **step 4 type** `sleepservice.exe uninstall`
