@@ -3,9 +3,10 @@ This application was written to automatically put my PC to sleep during a certai
 
 ## Code Details
 Built using C# .Net, 4.6 Framework
+Visual Studio 2017 V15.9.5
 
 ## Install/Uninstall Instructions
-### Istall
+### Install
 1. Change the values SleepServiceParams.txt
 '''
 Start Time Hours, Minutes
