@@ -23,8 +23,11 @@ namespace SleepService
 			_timer.AutoReset = false;
 #endif
 			#endregion
+			// Start Time Hours, Minutes
+			// xx, xx
+			// End Time Hours, Minutes
+			// xx, xx
 			string[] values = File.ReadAllLines(ParamsFilePath);
-
 			// Start Time Hours, Minutes
 			string[] _startTime = values[1].Split(',');
 			// End Time Hours, Minutes
@@ -51,7 +54,7 @@ namespace SleepService
 
 			DateTime startTime = DateTime.Parse(startHour.ToString() + ":" + startMin.ToString());
 			DateTime endTime = DateTime.Parse(endHour.ToString() + ":" + endMin.ToString());
-			endTime = (endTime < startTime) ? endTime.AddDays(1) : endTime;
+			endTime = (endTime.CompareTo(startTime) == -1) ? endTime.AddDays(1) : endTime;
 			DateTime currentTime = DateTime.Now;
 			Console.WriteLine("Current Time : {0}, Start Time : {1}, End Time {2}", 
 				currentTime.ToLongTimeString(), startTime.ToLongTimeString(), endTime.ToLongTimeString());
@@ -79,6 +82,9 @@ namespace SleepService
 					}
 				}
 			}
+			#if DEBUG
+			_timer.Start();
+			#endif
 		}
 
 		private TimeSpan GetIdleTime()
