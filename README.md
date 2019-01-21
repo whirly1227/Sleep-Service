@@ -9,13 +9,13 @@ Visual Studio 2017 V15.9.5
 ### Install
 1. Change the values SleepServiceParams.txt
 '''
-Start Time Hours, Minutes
-22, 00
-End Time Hours, Minutes
+Start Time Hours, Minutes  
+22, 00  
+End Time Hours, Minutes  
 08, 00
 '''
 2. Open Command Prompt (Admin)
-3. Change Directory to the file location
+3. Change Directory to the file location  
 'cd "C:\Users\USERNAME\SleepService"'
 4. Type 'sleepservice.exe install start'
 
