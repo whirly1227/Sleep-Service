@@ -2,7 +2,7 @@
 This application was written to automatically put my PC to sleep during a certain time. I have it set from 10:00 PM to 8:00 AM the next day.
 
 ## Code Details
-Built using C# .Net, 4.6 Framework
+Built using C# .Net, 4.6 Framework  
 Visual Studio 2017 V15.9.5
 
 ## Install/Uninstall Instructions
