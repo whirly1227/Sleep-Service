@@ -21,3 +21,8 @@ End Time Hours, Minutes
 
 ### Uninstall
 Same as install step 1-3, **step 4 type** `sleepservice.exe uninstall`
+
+## Updates
+#### 1.0.1 & 1.0.2 ####
+If currentTime is after midnight, The startTime & endTime will be for the current day.  
+**Example**: startTime = 1/1 10:00 PM, endTime = 1/2 8:00 AM. When currentTime clicks midnight on 1/2, both times will add 1 day. Now remove that day for the new check and see if currentTime fits in that range.
