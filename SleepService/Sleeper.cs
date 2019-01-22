@@ -59,8 +59,12 @@ namespace SleepService
 			Console.WriteLine("Current Time : {0}, Start Time : {1}, End Time {2}", 
 				currentTime.ToLongTimeString(), startTime.ToLongTimeString(), endTime.ToLongTimeString());
 
-
-			if (currentTime.CompareTo(startTime) >= 0 && currentTime.CompareTo(endTime) <= 0)
+			if ((currentTime.CompareTo(startTime) >= 0 && currentTime.CompareTo(endTime) <= 0) ||
+				// If currentTime is after midnight, The startTime & endTime will be for the current day.
+				// This will check to see if the currentTime fits between both value for the previous day.
+				// Example: startTime = 1/1 10:00 PM, endTime = 1/2 8:00 AM. When currentTime clicks midnight on 1/2, both times will add 1 day.
+				// Now remove that day for the new check and see if currentTime fits in that range.
+				(currentTime.CompareTo(startTime.Subtract(TimeSpan.FromDays(1))) >= 0 && currentTime.CompareTo(endTime.Subtract(TimeSpan.FromDays(1))) <= 0))
 			{
 				#region DEBUG
 #if DEBUG
