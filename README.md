@@ -18,6 +18,7 @@ End Time Hours, Minutes
 3. **Change Directory** to the file location where Sleep Service is located.  
      example: `cd "C:\Users\USERNAME\SleepService"`
 4. **Type** `sleepservice.exe install start`
+![Sleep Service Install](InstallCommandPrompt.png)
 
 ### Uninstall
 Same as install step 1-3, **step 4 type** `sleepservice.exe uninstall`
@@ -26,3 +27,6 @@ Same as install step 1-3, **step 4 type** `sleepservice.exe uninstall`
 #### 1.0.1 & 1.0.2 ####
 If currentTime is after midnight, The startTime & endTime will be for the current day.  
 **Example**: startTime = 1/1 10:00 PM, endTime = 1/2 8:00 AM. When currentTime clicks midnight on 1/2, both times will add 1 day. Now remove that day for the new check and see if currentTime fits in that range.
+#### 1.0.3 ####
+Syntax error where GetIdleTime.Seconds was greater then 15, should have been minutes.  
+Added a LastWake DateTime to check when computer was last woken up. Idle Time && LastWake time must both be greather than or equal to 15 minutes.
