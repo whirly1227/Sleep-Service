@@ -2,6 +2,7 @@
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Timers;
+using Microsoft.Win32;
 using Microsoft.Win32.SafeHandles;
 
 namespace SleepService
@@ -12,9 +13,11 @@ namespace SleepService
 		private readonly Timer _timer;
 		private int startHour, endHour, startMin, endMin;
 		private readonly DateTime LastUpdateToParams = File.GetLastWriteTime(@"C:\Program Files\SleepService\SleepServiceParams.txt");
+		private DateTime LastWake;
 
 		public Sleeper()
 		{
+			// _timer set for 10 seconds
 			_timer = new Timer(10000) { AutoReset = true };
 			_timer.Elapsed += Timer_Elapsed;
 			#region DEBUG
@@ -36,6 +39,7 @@ namespace SleepService
 			startMin = int.Parse(_startTime[1].Replace(" ", ""));
 			endHour = int.Parse(_endTime[0].Replace(" ", ""));
 			endMin = int.Parse(_endTime[1].Replace(" ", ""));
+			LastWake = DateTime.Now; // For initialization
 		}
 
 		private void Timer_Elapsed(object sender, ElapsedEventArgs e)
@@ -70,8 +74,8 @@ namespace SleepService
 #endif
 				#endregion
 				while (true)
-				{
-					if (GetIdleTime().Seconds > 15)
+				{					
+					if (GetIdleTime().Minutes > 15 && DateTime.Compare(LastWake.AddMinutes(15), DateTime.Now) >= 0)
 					{
 						WakeUP wup = new WakeUP();
 						wup.Woken += WakeUP_Woken;
@@ -92,7 +96,7 @@ namespace SleepService
 			{
 				while (true)
 				{
-					if (GetIdleTime().Seconds > 15)
+					if (GetIdleTime().Minutes > 15 && DateTime.Compare(LastWake.AddMinutes(15), DateTime.Now) >= 0)
 					{
 						WakeUP wup = new WakeUP();
 						wup.Woken += WakeUP_Woken;
@@ -108,6 +112,7 @@ namespace SleepService
 			#endif
 		}
 
+		// Copied code from Stack Overflow
 		private TimeSpan GetIdleTime()
 		{
 			DateTime bootTime = DateTime.UtcNow.AddMilliseconds(-Environment.TickCount);
@@ -160,7 +165,11 @@ namespace SleepService
 
 		private void WakeUP_Woken(object sender, EventArgs e)
 		{
-			// Do something 
+			#if DEBUG
+			Console.WriteLine("Computer Awoken");
+			#endif
+			// Sets the time for the last woken time so that computer doesn't go back to sleep.
+			LastWake = DateTime.Now;
 		}
 	}
 }
