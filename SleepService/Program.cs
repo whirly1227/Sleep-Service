@@ -16,6 +16,7 @@ namespace SleepService
 			Sleeper _sleeper = new Sleeper();
 			_sleeper.Start();
 			Console.Read();
+			Environment.Exit(0);
 #endif
 			#endregion
 

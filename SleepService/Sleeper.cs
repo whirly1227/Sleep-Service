@@ -10,19 +10,22 @@ namespace SleepService
 	public class Sleeper
 	{
 		private readonly string ParamsFilePath = "C:\\Program Files\\SleepService\\SleepServiceParams.txt";
-		private readonly Timer _timer;
+		private Timer _timer;
 		private int startHour, endHour, startMin, endMin;
 		private readonly DateTime LastUpdateToParams = File.GetLastWriteTime(@"C:\Program Files\SleepService\SleepServiceParams.txt");
 		private DateTime LastWake;
+		private long SleeperCounter = 0;
+		private int SleepWaitTime = 5000;
 
 		public Sleeper()
 		{
 			// _timer set for 10 seconds
-			_timer = new Timer(10000) { AutoReset = true };
+			_timer = new Timer(SleepWaitTime);
+			_timer.AutoReset = true;
 			_timer.Elapsed += Timer_Elapsed;
 			#region DEBUG
 #if DEBUG
-			_timer.Interval = 5000;
+			_timer.Interval = SleepWaitTime;
 			_timer.AutoReset = false;
 #endif
 			#endregion
@@ -44,6 +47,10 @@ namespace SleepService
 
 		private void Timer_Elapsed(object sender, ElapsedEventArgs e)
 		{
+			// Restart _timer if counter gets to 1000
+			SleeperCounter++;
+			if (SleeperCounter >= 1000) RestartTimer();
+
 			// Get new parameters if settings file updated while service is running
 			if (LastUpdateToParams < File.GetLastWriteTime(ParamsFilePath))
 			{
@@ -63,18 +70,26 @@ namespace SleepService
 			Console.WriteLine("Current Time : {0}, Start Time : {1}, End Time {2}", 
 				currentTime.ToLongTimeString(), startTime.ToLongTimeString(), endTime.ToLongTimeString());
 
+			// If current time is after start time and before end time
 			if (currentTime.CompareTo(startTime) >= 0 && currentTime.CompareTo(endTime) <= 0)
 			{
+				Stop();
 				#region DEBUG
 #if DEBUG
 				// During Debug, Stop timer and WriteLine
-				Stop();
+				//Stop();
 				Console.WriteLine("Put Computer to Sleep Reached");
-				_timer.Start();
+				//_timer.Start();
 #endif
 				#endregion
-				while (true)
-				{					
+				// While current day hasn't increased (Before Midnight)
+				while (DateTime.Now.Day < startTime.AddDays(1).Day)
+				{
+					#region DEBUG
+#if DEBUG
+					Console.WriteLine("Last Wake    : " + LastWake.ToShortTimeString());
+#endif
+					#endregion
 					if (GetIdleTime().Minutes > 15 && DateTime.Compare(LastWake.AddMinutes(15), DateTime.Now) >= 0)
 					{
 						WakeUP wup = new WakeUP();
@@ -83,7 +98,9 @@ namespace SleepService
 						SetSuspendState(false, false, false);
 						return;
 					}
+					System.Threading.Thread.Sleep(SleepWaitTime);
 				}
+				Start();
 			}
 
 			// If currentTime is after midnight, The startTime & endTime will be for the current day.
@@ -94,9 +111,23 @@ namespace SleepService
 			endTime = endTime.Subtract(TimeSpan.FromDays(1));
 			if (currentTime.CompareTo(startTime) >= 0 && currentTime.CompareTo(endTime) <= 0)
 			{
+				Stop();
+				#region DEBUG
+#if DEBUG
+				// During Debug, Stop timer and WriteLine
+				//Stop();
+				Console.WriteLine("Put Computer to Sleep Reached");
+				//_timer.Start();
+#endif
+				#endregion
 				while (true)
 				{
-					if (GetIdleTime().Minutes > 15 && DateTime.Compare(LastWake.AddMinutes(15), DateTime.Now) >= 0)
+					#region DEBUG
+#if DEBUG
+					Console.WriteLine("Last Wake    : " + LastWake.ToShortTimeString());
+#endif
+					#endregion
+					if (GetIdleTime().Minutes >= 15 && DateTime.Compare(LastWake.AddMinutes(15), DateTime.Now) >= 0)
 					{
 						WakeUP wup = new WakeUP();
 						wup.Woken += WakeUP_Woken;
@@ -104,26 +135,33 @@ namespace SleepService
 						SetSuspendState(false, false, false);
 						return;
 					}
+					System.Threading.Thread.Sleep(SleepWaitTime);
 				}
 			}
-
-			#if DEBUG
-			_timer.Start();
-			#endif
+			#region DEBUG
+#if DEBUG
+			Start();
+#endif
+			#endregion
 		}
 
 		// Copied code from Stack Overflow
 		private TimeSpan GetIdleTime()
-		{
-			DateTime bootTime = DateTime.UtcNow.AddMilliseconds(-Environment.TickCount);
+		{ 
+			DateTime bootTime = DateTime.Now.AddMilliseconds(-Environment.TickCount);
 			LASTINPUTINFO lii = new LASTINPUTINFO
 			{
 				cbSize = (uint)Marshal.SizeOf(typeof(LASTINPUTINFO))
 			};
 			GetLastInputInfo(ref lii);
-
 			DateTime lastInputTime = bootTime.AddMilliseconds(lii.dwTime);
-			return DateTime.UtcNow.Subtract(lastInputTime);
+			#region DEBUG
+#if DEBUG
+			//Console.WriteLine("Boot Time       : " + bootTime);
+			Console.WriteLine("Idle Time    : {0:mm\\:ss}", DateTime.Now.Subtract(lastInputTime));
+#endif
+			#endregion
+			return DateTime.Now.Subtract(lastInputTime);
 		}
 
 		public void Start()
@@ -140,6 +178,24 @@ namespace SleepService
 			#if DEBUG
 			Console.WriteLine("Sleep Timer Stop");
 			#endif
+		}
+
+		/// <summary>
+		/// Restart Timer and dispose of resources. This will decrease system usage.
+		/// </summary>
+		private void RestartTimer()
+		{
+			SleeperCounter = 0;
+			#region DEBUG
+#if DEBUG
+			Console.WriteLine("Restart Time    : " + DateTime.Now);
+#endif
+			#endregion
+			Stop();
+			_timer.Dispose();
+			_timer = new Timer(SleepWaitTime) { AutoReset = true };
+			_timer.Elapsed += Timer_Elapsed;
+			Start();
 		}
 
 		[DllImport("user32.dll")]
