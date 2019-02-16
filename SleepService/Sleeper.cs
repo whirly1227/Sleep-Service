@@ -16,12 +16,12 @@ namespace SleepService
 		private DateTime LastWake;
 		private long SleeperCounter = 0;
 		private int SleepWaitTime = 5000;
+		private DateTime startTime, startTime2, endTime, endTime2;
 
 		public Sleeper()
 		{
 			// _timer set for 10 seconds
-			_timer = new Timer(SleepWaitTime);
-			_timer.AutoReset = true;
+			_timer = new Timer(SleepWaitTime){ AutoReset = true };
 			_timer.Elapsed += Timer_Elapsed;
 			#region DEBUG
 #if DEBUG
@@ -29,20 +29,12 @@ namespace SleepService
 			_timer.AutoReset = false;
 #endif
 			#endregion
-			// Start Time Hours, Minutes
-			// xx, xx
-			// End Time Hours, Minutes
-			// xx, xx
-			string[] values = File.ReadAllLines(ParamsFilePath);
-			// Start Time Hours, Minutes
-			string[] _startTime = values[1].Split(',');
-			// End Time Hours, Minutes
-			string[] _endTime = values[3].Split(',');
-			startHour = int.Parse(_startTime[0].Replace(" ", ""));
-			startMin = int.Parse(_startTime[1].Replace(" ", ""));
-			endHour = int.Parse(_endTime[0].Replace(" ", ""));
-			endMin = int.Parse(_endTime[1].Replace(" ", ""));
+			GetNewStartEndTime();
 			LastWake = DateTime.Now; // For initialization
+			#if DEBUG
+			Console.WriteLine("Current Time : {0}, Start Time : {1}, End Time {2}",
+				DateTime.Now.ToLongTimeString(), startTime.ToLongTimeString(), endTime.ToLongTimeString());
+			#endif
 		}
 
 		private void Timer_Elapsed(object sender, ElapsedEventArgs e)
@@ -52,23 +44,12 @@ namespace SleepService
 			if (SleeperCounter >= 1000) RestartTimer();
 
 			// Get new parameters if settings file updated while service is running
-			if (LastUpdateToParams < File.GetLastWriteTime(ParamsFilePath))
-			{
-				string[] values = File.ReadAllText(ParamsFilePath).Split(',');
-				// values [ startHour, startMin, endHour, endMin ]
-				startHour = int.Parse(values[0]);
-				startMin = int.Parse(values[1]);
-				endHour = int.Parse(values[2]);
-				endMin = int.Parse(values[3]);
-			}
-			TimeSpan idleTime = GetIdleTime(); // Time user hasn't touched PC
+			if (LastUpdateToParams < File.GetLastWriteTime(ParamsFilePath)) GetNewStartEndTime();
 
-			DateTime startTime = DateTime.Parse(startHour.ToString() + ":" + startMin.ToString());
-			DateTime endTime = DateTime.Parse(endHour.ToString() + ":" + endMin.ToString());
-			endTime = (endTime.CompareTo(startTime) == -1) ? endTime.AddDays(1) : endTime;
 			DateTime currentTime = DateTime.Now;
-			Console.WriteLine("Current Time : {0}, Start Time : {1}, End Time {2}", 
-				currentTime.ToLongTimeString(), startTime.ToLongTimeString(), endTime.ToLongTimeString());
+			#if DEBUG
+			Console.WriteLine("Current Time : {0:HH\\:mm\\:ss MM/dd}", currentTime);
+			#endif
 
 			// If current time is after start time and before end time
 			if (currentTime.CompareTo(startTime) >= 0 && currentTime.CompareTo(endTime) <= 0)
@@ -101,15 +82,16 @@ namespace SleepService
 					System.Threading.Thread.Sleep(SleepWaitTime);
 				}
 				Start();
+				return;
 			}
 
 			// If currentTime is after midnight, The startTime & endTime will be for the current day.
 			// This will check to see if the currentTime fits between both value for the previous day.
 			// Example: startTime = 1/1 10:00 PM, endTime = 1/2 8:00 AM. When currentTime clicks midnight on 1/2, both times will add 1 day.
 			// Now remove that day for the new check and see if currentTime fits in that range.
-			startTime = startTime.Subtract(TimeSpan.FromDays(1));
-			endTime = endTime.Subtract(TimeSpan.FromDays(1));
-			if (currentTime.CompareTo(startTime) >= 0 && currentTime.CompareTo(endTime) <= 0)
+			startTime2 = startTime.Subtract(TimeSpan.FromDays(1));
+			endTime2 = endTime.Subtract(TimeSpan.FromDays(1));
+			if (currentTime.CompareTo(startTime2) >= 0 && currentTime.CompareTo(endTime2) <= 0)
 			{
 				Stop();
 				#region DEBUG
@@ -140,8 +122,37 @@ namespace SleepService
 			}
 			#region DEBUG
 #if DEBUG
-			Start();
+			_timer.Start();
 #endif
+			#endregion
+		}
+
+		/// <summary>
+		/// Gets the start and end times from the Settings file
+		/// </summary>
+		private void GetNewStartEndTime()
+		{
+			// Start Time Hours, Minutes
+			// xx, xx
+			// End Time Hours, Minutes
+			// xx, xx
+			string[] values = File.ReadAllLines(ParamsFilePath);
+			// Start Time Hours, Minutes
+			string[] _startTime = values[1].Split(',');
+			// End Time Hours, Minutes
+			string[] _endTime = values[3].Split(',');
+			startHour = int.Parse(_startTime[0].Replace(" ", ""));
+			startMin = int.Parse(_startTime[1].Replace(" ", ""));
+			startTime = DateTime.Parse(startHour.ToString() + ":" + startMin.ToString());
+			endHour = int.Parse(_endTime[0].Replace(" ", ""));
+			endMin = int.Parse(_endTime[1].Replace(" ", ""));
+			endTime = DateTime.Parse(endHour.ToString() + ":" + endMin.ToString());
+			endTime = (endTime.CompareTo(startTime) == -1) ? endTime.AddDays(1) : endTime;
+			#region DEBUG
+			#if DEBUG
+			Console.WriteLine("Start Time   : {0:HH\\:mm\\:ss MM/dd}", startTime);
+			Console.WriteLine("End Time     : {0:HH\\:mm\\:ss MM/dd}", endTime);
+			#endif
 			#endregion
 		}
 
@@ -168,7 +179,7 @@ namespace SleepService
 		{
 			_timer.Start();
 			#if DEBUG
-			Console.WriteLine("Sleep Timer Start");
+			Console.WriteLine("Sleep Timer  : Start");
 			#endif
 		}
 
@@ -176,7 +187,7 @@ namespace SleepService
 		{
 			_timer.Stop();
 			#if DEBUG
-			Console.WriteLine("Sleep Timer Stop");
+			Console.WriteLine("Sleep Timer  : Stop");
 			#endif
 		}
 
@@ -186,11 +197,9 @@ namespace SleepService
 		private void RestartTimer()
 		{
 			SleeperCounter = 0;
-			#region DEBUG
-#if DEBUG
+			#if DEBUG
 			Console.WriteLine("Restart Time    : " + DateTime.Now);
-#endif
-			#endregion
+			#endif
 			Stop();
 			_timer.Dispose();
 			_timer = new Timer(SleepWaitTime) { AutoReset = true };
